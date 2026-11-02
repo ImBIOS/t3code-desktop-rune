@@ -11,8 +11,19 @@ fn sidebar(s: &App, k: &Kit) -> El {
     let mut sb = Sidebar::new()
         .label("Threads")
         .header(SidebarRow::new("New chat").detail("⌘N").build(k).key("new"))
-        .header(SidebarRow::new("Command palette").detail("⌘K").build(k).key("palette"))
-        .footer(SidebarRow::new("Settings").build(k).key("settings"));
+        .header(
+            SidebarRow::new("Command palette")
+                .detail("⌘K")
+                .on_select(|s: &mut App, _| s.palette_open = true)
+                .build(k)
+                .key("palette"),
+        )
+        .footer(
+            SidebarRow::new("Settings")
+                .on_select(|s: &mut App, _| s.route = Route::Settings("appearance".into()))
+                .build(k)
+                .key("settings"),
+        );
     let rows: Vec<El> = s
         .threads
         .iter()
@@ -92,16 +103,25 @@ fn home(s: &App, k: &Kit) -> El {
     let sub = text(format!("Nightly parity target: {PARITY_T3_VERSION}")).font(k.ty.small).color(k.c.text_faint);
     let status = text(s.rpc_status.clone()).font(k.ty.small).color(k.c.text_muted).wrap();
     let refresh = Button::new("Refresh threads (read-only)")
-        .on_press(|s: &mut App| match t3rpc::thread_list(".") {
-            Ok(list) => {
-                s.rpc_status = format!("{} thread(s) via read-only CLI.", list.len());
-                s.rpc_threads = list.clone();
-                s.threads = list
-                    .into_iter()
-                    .map(|(id, title)| crate::model::Thread { id, title, time: String::new(), unread: 0 })
-                    .collect();
+        .on_press(|s: &mut App| {
+            // Try likely-registered project dirs; the CLI needs a registered
+            // project, not any path. First success wins (all read-only GETs).
+            let mut last = String::new();
+            for proj in [".", "/home/imbios/.t3/worktrees/rune/t3-58227582", "/home/imbios/dev/projects/rune"] {
+                match t3rpc::thread_list(proj) {
+                    Ok(list) => {
+                        s.rpc_status = format!("{} thread(s) via read-only CLI ({proj}).", list.len());
+                        s.rpc_threads = list.clone();
+                        s.threads = list
+                            .into_iter()
+                            .map(|(id, title)| crate::model::Thread { id, title, time: String::new(), unread: 0 })
+                            .collect();
+                        return;
+                    }
+                    Err(e) => last = e,
+                }
             }
-            Err(e) => s.rpc_status = format!("Refresh failed (read-only): {e}"),
+            s.rpc_status = format!("Refresh failed (read-only): {last}");
         })
         .build(k)
         .key("refresh");
@@ -156,9 +176,9 @@ fn settings_view(_s: &App, k: &Kit, page: &str) -> El {
     col().key("settings").w_full().padding(24.0).gap(12.0).child(head).child(note)
 }
 
-fn palette(s: &App, k: &Kit) -> El {
+fn palette(s: &App, k: &Kit) -> Option<El> {
     if !s.palette_open {
-        return el().key("no-palette");
+        return None;
     }
     let q = TextArea::new(&s.palette_query)
         .placeholder("Type a command…")
@@ -170,14 +190,33 @@ fn palette(s: &App, k: &Kit) -> El {
     for (i, c) in cmds.iter().enumerate() {
         list = list.child(text((*c).to_owned()).font(k.ty.body).color(k.c.text_base).key(format!("cmd{i}")));
     }
-    col()
-        .key("palette")
+    let panel = col()
+        .key("palette-panel")
         .w_full()
+        .max_w(560.0)
+        .radius(8.0)
+        .fill(k.c.layer_01)
         .padding(16.0)
         .gap(8.0)
         .child(text("Command palette".to_owned()).font(k.ty.ui_medium).color(k.c.text_base))
         .child(q)
-        .child(list)
+        .child(list);
+    Some(
+        el().key("palette-scrim")
+            .absolute(0.0, 0.0)
+            .w_full()
+            .h_full()
+            .fill(k.c.scrim)
+            .child(
+                el().key("palette-layer")
+                    .absolute(0.0, 0.0)
+                    .w_full()
+                    .h_full()
+                    .padding(16.0)
+                    .center()
+                    .child(panel),
+            ),
+    )
 }
 
 pub fn root(s: &App, k: &'static Kit, cx: &mut Cx<App>) -> El {
@@ -201,7 +240,10 @@ pub fn root(s: &App, k: &'static Kit, cx: &mut Cx<App>) -> El {
         .toolbar(toolbar)
         .titlebar_inset(cx.titlebar_inset())
         .build(k);
-    if s.palette_open { col().w_full().h_full().child(shell).child(palette(s, k)) } else { shell }
+    match palette(s, k) {
+        Some(overlay) => rune_kit::root(shell, [overlay]),
+        None => shell,
+    }
 }
 
 #[allow(dead_code)]
