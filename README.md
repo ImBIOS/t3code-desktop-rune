@@ -4,6 +4,26 @@ T3 Code Desktop recreated in [Rune](https://github.com/anomalyco/rune) (Rust GPU
 
 Parity target: T3 Code `0.1.7-nightly.20261102.4061` (`t3 --version`). See [PARITY.md](PARITY.md).
 
+## Screenshots & recording
+
+Live windowed run on Linux (Xvfb + Lavapipe, driven with XTest clicks, all
+read-only — details in [snaps-live/QA-NOTES.md](snaps-live/QA-NOTES.md)):
+
+| Home | Connected (Refresh) | Command palette |
+|---|---|---|
+| ![home](snaps-live/01-home.png) | ![connected](snaps-live/02-connected.png) | ![palette](snaps-live/03-palette.png) |
+
+| Thread + composer | Transcript (real, read-only) | Settings |
+|---|---|---|
+| ![thread](snaps-live/05-thread.png) | ![transcript](snaps-live/06-transcript.png) | ![settings](snaps-live/07-settings.png) |
+
+Full click-through recording (`tour.mp4`, 34 s, 1280x820):
+
+<video src="snaps-live/tour.mp4" controls width="640"></video>
+
+> GitHub's web UI may not preview the `<video>` tag; if it doesn't play,
+> download [snaps-live/tour.mp4](snaps-live/tour.mp4) and watch it locally.
+
 ## Status
 
 Early scaffold (day 1): app shell (SplitView sidebar + toolbar), thread list,

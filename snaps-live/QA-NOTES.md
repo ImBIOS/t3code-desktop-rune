@@ -18,7 +18,7 @@ Driver: `python-xlib` + XTest clicks, `scrot` screenshots,
 | `05-thread.png` | click thread row | session view, fixture Markdown transcript + code block, composer |
 | `06-transcript.png` | click Load transcript | empty real transcript replaces fixtures (that thread has 0 messages — correct) |
 | `07-settings.png` | click Settings | appearance stub page |
-| `tour.mp4` | full pass, 12 fps x11grab, 408 frames / 34 s | verified by extracted frames |
+| `tour.mp4` | full pass, 12 fps x11grab, 408 frames / 34 s | frames extracted at n=30/130/210/300/380 and read: home → connected (+cursor) → palette → thread+transcript+composer; no foreign windows, no torn frames |
 
 ## Findings
 
