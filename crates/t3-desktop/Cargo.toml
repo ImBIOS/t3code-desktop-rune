@@ -1,0 +1,12 @@
+[package]
+name = "t3-desktop"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "T3 Code Desktop recreated in Rune for Linux — 1:1 with T3 Code Desktop Nightly."
+
+[dependencies]
+rune = { git = "https://github.com/ImBIOS/rune", branch = "t3/desktop-linux" }
+rune-kit = { git = "https://github.com/ImBIOS/rune", branch = "t3/desktop-linux", features = ["markdown", "mermaid"] }
+rune-theme-opencode = { git = "https://github.com/ImBIOS/rune", branch = "t3/desktop-linux" }
+serde_json = "1"
